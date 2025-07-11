@@ -10,7 +10,7 @@ module SEXT(
 always @(*) begin
     case (sext_op_i)
         `EXT_I: begin
-            ext_o = {{20{din_i[31]}}, din_i[31:20]}; //立即数扩�?
+            ext_o = {{20{din_i[31]}}, din_i[31:20]}; //立即数扩�?
         end
         `EXT_S: begin
             ext_o = {{20{din_i[31]}}, din_i[31:25], din_i[11:7]}; //存储指令扩展
@@ -25,7 +25,7 @@ always @(*) begin
             ext_o = {{12{din_i[31]}}, din_i[19:12], din_i[20], din_i[30:21], 1'b0}; //跳转指令扩展
         end
         default: begin
-            ext_o = 32'b0; //默认输出�?0
+            ext_o = 32'b0; //默认输出�?0
         end
     endcase
 end

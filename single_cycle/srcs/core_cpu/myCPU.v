@@ -39,7 +39,7 @@ wire [1:0] npc_op; //NPC操作选择
 wire mux_sel; //MUX选择信号
 wire br; //分支跳转信号
 wire [31:0] alu_c;
-reg [31:0] imm;
+wire [31:0] imm;
 wire [31:0] pc4; //PC+4指令地址
 wire zero;
 wire neg;

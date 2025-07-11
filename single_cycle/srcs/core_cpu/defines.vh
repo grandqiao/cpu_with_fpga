@@ -71,17 +71,22 @@
 `define FUN3_BEQ 3'b000 //等于
 `define FUN3_BNE 3'b001 //不等于
 `define FUN3_BLT 3'b100 //小于
-`define FUN3_BGE 3'b101 //小于
+`define FUN3_BGE 3'b101 //大于等于
 
 // fun7
 `define FUN7_SRL 7'b0000000 //逻辑右移
 `define FUN7_SRA 7'b0100000 //算术右移
 
 
-// 外设I/O接口电路的端口地�?
+// 外设I/O接口电路的端口地
 `define PERI_ADDR_DIG   32'hFFFF_F000
 `define PERI_ADDR_LED   32'hFFFF_F060
 `define PERI_ADDR_SW    32'hFFFF_F070
 `define PERI_ADDR_BTN   32'hFFFF_F078
+`define PERI_ADDR_CNT  32'hFFFF_F020
+
+`define DEBOUNCE_TIME 32'd80000 // 按键消抖时间
+`define DIG_MAX 32'd800000
+
 
 `endif

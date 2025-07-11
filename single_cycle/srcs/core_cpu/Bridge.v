@@ -43,7 +43,15 @@ module Bridge (
     output wire         rst_to_btn,
     output wire         clk_to_btn,
     output wire [31:0]  addr_to_btn,
-    input  wire [31:0]  rdata_from_btn
+    input  wire [31:0]  rdata_from_btn,
+
+    // Interface to counter
+    output wire         rst_to_cnt,
+    output wire         clk_to_cnt,
+    output wire [31:0]  addr_to_cnt,
+    output wire         we_to_cnt,
+    output wire [31:0]  wdata_to_cnt,
+    input  wire [31:0]  rdata_from_cnt
 );
 
     wire access_mem = (addr_from_cpu[31:12] != 20'hFFFFF) ? 1'b1 : 1'b0;
@@ -51,12 +59,14 @@ module Bridge (
     wire access_led = (addr_from_cpu == `PERI_ADDR_LED) ? 1'b1 : 1'b0;
     wire access_sw  = (addr_from_cpu == `PERI_ADDR_SW ) ? 1'b1 : 1'b0;
     wire access_btn = (addr_from_cpu == `PERI_ADDR_BTN) ? 1'b1 : 1'b0;
+    wire access_cnt = ({addr_from_cpu[31:4],4'b0000} == `PERI_ADDR_CNT) ? 1'b1 : 1'b0;
     
     wire [4:0] access_bit = { access_mem,
                               access_dig,
                               access_led,
                               access_sw,
-                              access_btn };
+                              access_btn,
+                              access_cnt };
 
     // DRAM
     // assign rst_to_dram  = rst_from_cpu;
@@ -64,6 +74,13 @@ module Bridge (
     assign addr_to_dram  = addr_from_cpu;
     assign we_to_dram    = we_from_cpu & access_mem;
     assign wdata_to_dram = wdata_from_cpu;
+
+    // Counter
+    assign rst_to_cnt   = rst_from_cpu;
+    assign clk_to_cnt   = clk_from_cpu;
+    assign addr_to_cnt  = addr_from_cpu;
+    assign we_to_cnt    = we_from_cpu & access_cnt;
+    assign wdata_to_cnt = wdata_from_cpu;
 
     // 7-seg LEDs
     assign rst_to_dig    = rst_from_cpu;
@@ -92,9 +109,10 @@ module Bridge (
     // Select read data towards CPU
     always @(*) begin
         casex (access_bit)
-            5'b1????: rdata_to_cpu = rdata_from_dram;
-            5'b00010: rdata_to_cpu = rdata_from_sw;
-            5'b00001: rdata_to_cpu = rdata_from_btn;
+            6'b1?????: rdata_to_cpu = rdata_from_dram;
+            6'b000100: rdata_to_cpu = rdata_from_sw;
+            6'b000010: rdata_to_cpu = rdata_from_btn;
+            6'b000001: rdata_to_cpu = rdata_from_cnt;
             default:  rdata_to_cpu = 32'hFFFF_FFFF;
         endcase
     end

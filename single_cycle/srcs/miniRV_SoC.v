@@ -3,8 +3,8 @@
 `include "defines.vh"
 
 module miniRV_SoC (
-    // input  wire         fpga_rstn,   // Low active
-    input  wire         fpga_rst,  // High active
+    input  wire         fpga_rstn,   // Low active
+    // input  wire         fpga_rst,  // High active
     input  wire         fpga_clk,
 
     input  wire [15:0]  sw,
@@ -34,6 +34,7 @@ module miniRV_SoC (
     wire        pll_clk;
     wire        cpu_clk;
 
+
     // Interface between CPU and IROM
 `ifdef RUN_TRACE
     wire [15:0] inst_addr;
@@ -41,6 +42,7 @@ module miniRV_SoC (
     wire [13:0] inst_addr;
 `endif
     wire [31:0] inst;
+
 
     // Interface between CPU and Bridge
     wire [31:0] Bus_rdata;
@@ -59,7 +61,34 @@ module miniRV_SoC (
     // Interface between bridge and peripherals
     // TODO: 在此定义总线桥与外设I/O接口电路模块的连接信号
     //
+    wire clk_bridge2dig;
+    wire rst_bridge2dig;
+    wire [31:0] addr_bridge2dig;
+    wire [31:0] wdata_bridge2dig;
+    wire        we_bridge2dig;
 
+    wire clk_bridge2led;
+    wire rst_bridge2led;
+    wire [31:0] addr_bridge2led;
+    wire [31:0] wdata_bridge2led;
+    wire        we_bridge2led;
+
+    wire clk_bridge2sw;
+    wire rst_bridge2sw;
+    wire [31:0] addr_bridge2sw;
+    wire [31:0] rdata_sw2bridge;
+
+    wire clk_bridge2btn;
+    wire rst_bridge2btn;
+    wire [31:0] addr_bridge2btn;
+    wire [31:0] rdata_btn2bridge;
+
+    wire clk_bridge2cnt;
+    wire rst_bridge2cnt;
+    wire [31:0] addr_bridge2cnt;
+    wire [31:0] wdata_bridge2cnt;
+    wire        we_bridge2cnt;
+    wire [31:0] rdata_cnt2bridge;
     
 
     assign DN_A1 = DN_A0;
@@ -70,7 +99,6 @@ module miniRV_SoC (
     assign DN_F1 = DN_F0;
     assign DN_G1 = DN_G0;
     assign DN_DP1 = DN_DP0;
-    
 
     
 `ifdef RUN_TRACE
@@ -89,8 +117,8 @@ module miniRV_SoC (
     
 
     // NO trace
-    // wire cpu_rst = ~fpga_rstn; // 将复位信号取反，使用低电平有效的复位信号
-    wire cpu_rst = fpga_rst; // 使用高电平有效的复位信号
+    wire cpu_rst = ~fpga_rstn; // 将复位信号取反，使用低电平有效的复位信号
+    // wire cpu_rst = fpga_rst; // 使用高电平有效的复位信号
     myCPU Core_cpu (
         .cpu_rst            (cpu_rst),
         .cpu_clk            (cpu_clk),
@@ -121,67 +149,105 @@ module miniRV_SoC (
     );
 
     DRAM Mem_DRAM (
-        .clk        (cpu_clk),
+        .clk        (clk_bridge2dram),
         .a          (addr_bridge2dram[15:2]),
         .spo        (rdata_dram2bridge),
         .we         (we_bridge2dram),
         .d          (wdata_bridge2dram)
     );
 
-    assign addr_bridge2dram = Bus_addr; // 将总线地址直接连接到DRAM地址
-    assign we_bridge2dram = Bus_we; // 将总线写使能直接连接到DRAM写使能
-    assign wdata_bridge2dram = Bus_wdata; // 将总线写数据直接连接到DRAM写数据
-    // assign clk_bridge2dram = cpu_clk; // 将CPU时钟直接连接到DRAM时钟
-    assign Bus_rdata = rdata_dram2bridge; // 将DRAM读数据直接连接到总线读数据
     
     Bridge Bridge (       
         // Interface to CPU
-        .rst_from_cpu       (~fpga_rstn),
+        .rst_from_cpu       (cpu_rst),
         .clk_from_cpu       (cpu_clk),
         .addr_from_cpu      (Bus_addr),
         .we_from_cpu        (Bus_we),
         .wdata_from_cpu     (Bus_wdata),
-        .rdata_to_cpu       (/*to do*/),
+        .rdata_to_cpu       (Bus_rdata),
         
         // Interface to DRAM
         // .rst_to_dram    (rst_bridge2dram),
-        .clk_to_dram        (/*clk_bridge2dram*/),
-        .addr_to_dram       (/*addr_bridge2dram*/),
-        .rdata_from_dram    (/*rdata_dram2bridge*/),
-        .we_to_dram         (/*we_bridge2dram*/),
-        .wdata_to_dram      (/*wdata_bridge2dram*/),
+        .clk_to_dram        (clk_bridge2dram),
+        .addr_to_dram       (addr_bridge2dram),
+        .rdata_from_dram    (rdata_dram2bridge),
+        .we_to_dram         (we_bridge2dram),
+        .wdata_to_dram      (wdata_bridge2dram),
         
         // Interface to 7-seg digital LEDs
-        .rst_to_dig         (/*~fpga_rstn*/),
-        .clk_to_dig         (/*clk_bridge2dram*/),
-        .addr_to_dig        (/*addr_bridge2dram*/),
-        .we_to_dig          (/* TODO */),
-        .wdata_to_dig       (/* TODO */),
+        .rst_to_dig         (rst_bridge2dig),
+        .clk_to_dig         (clk_bridge2dig),
+        .addr_to_dig        (addr_bridge2dig),
+        .we_to_dig          (we_bridge2dig),
+        .wdata_to_dig       (wdata_bridge2dig),
+
+        // Interface to counter
+        .rst_to_cnt         (rst_bridge2cnt),
+        .clk_to_cnt         (clk_bridge2cnt),
+        .addr_to_cnt        (addr_bridge2cnt),
+        .we_to_cnt          (we_bridge2cnt),
+        .wdata_to_cnt       (wdata_bridge2cnt),
+        .rdata_from_cnt     (rdata_cnt2bridge),
 
         // Interface to LEDs
-        .rst_to_led         (/*~fpga_rstn*/),
-        .clk_to_led         (/*clk_bridge2dram*/),
-        .addr_to_led        (/*addr_bridge2dram*/),
-        .we_to_led          (/* TODO */),
-        .wdata_to_led       (/* TODO */),
+        .rst_to_led         (rst_bridge2led),
+        .clk_to_led         (clk_bridge2led),
+        .addr_to_led        (addr_bridge2led),
+        .we_to_led          (we_bridge2led),
+        .wdata_to_led       (wdata_bridge2led),
 
         // Interface to switches
-        .rst_to_sw          (/*~fpga_rstn*/),
-        .clk_to_sw          (/*clk_bridge2dram*/),
-        .addr_to_sw         (/*addr_bridge2dram*/),
-        .rdata_from_sw      (/* TODO */),
+        .rst_to_sw          (rst_bridge2sw),
+        .clk_to_sw          (clk_bridge2sw),
+        .addr_to_sw         (addr_bridge2sw),
+        .rdata_from_sw      (rdata_sw2bridge),
 
         // Interface to buttons
-        .rst_to_btn         (/*~fpga_rstn*/),
-        .clk_to_btn         (/*clk_bridge2dram*/),
-        .addr_to_btn        (/*addr_bridge2dram*/),
-        .rdata_from_btn     (/* TODO */)
+        .rst_to_btn         (rst_bridge2btn),
+        .clk_to_btn         (clk_bridge2btn),
+        .addr_to_btn        (addr_bridge2btn),
+        .rdata_from_btn     (rdata_btn2bridge)
     );
 
     
     
     // TODO: 在此实例化你的外设I/O接口电路模块
     //
+    DIG U_DIG(
+        .clk_i(cpu_clk),
+        .rst_i(cpu_rst),
+        .data_i(wdata_bridge2dig),
+        .addr_i(addr_bridge2dig),
+        .we_i(we_bridge2dig),
+        .D0_o(dig_en),
+        .dig1_o({DN_A0, DN_B0, DN_C0, DN_D0, DN_E0, DN_F0, DN_G0, DN_DP0})
+    );
+
+    LED U_LED(
+        .clk_i(cpu_clk),
+        .rst_i(cpu_rst),
+        .data_i(wdata_bridge2led),
+        .addr_i(addr_bridge2led),
+        .we_i(we_bridge2led),
+        .led_o(led)
+    );
+
+    SWITCHES U_SW(
+        .clk_i(cpu_clk),
+        .rst_i(cpu_rst),
+        .data_i({16'b0, sw}),
+        .data_o(rdata_sw2bridge)
+    );
+
+    Counter U_CNT(
+        .clk_i(cpu_clk),
+        .rst_i(cpu_rst),
+        .addr_i(addr_bridge2cnt),
+        .we_i(we_bridge2cnt),
+        .data_i(wdata_bridge2cnt),
+        .data_o(rdata_cnt2bridge)
+    );
+
 
 
 endmodule

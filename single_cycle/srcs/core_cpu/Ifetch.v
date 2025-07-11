@@ -10,13 +10,13 @@ module IFETCH(
     input  wire      br_i,   //是否分支跳转
     input  wire [31:0]  ext_i,  //立即数输�??
     input  wire [31:0]  alu_pc_i, //jalr计算指令地址
-    output reg  [31:0]  pc4_o,   //PC+4指令地址
-    output reg  [31:0] current_pc_o
+    output wire  [31:0]  pc4_o,   //PC+4指令地址
+    output wire  [31:0] current_pc_o
 );
 
-reg [31:0] next_pc;     //PC下一条指令地�??
-reg [31:0] current_pc;  //PC当前指令地址
-reg [31:0] npc_pc;  //NPC计算得指令地�??
+wire [31:0] next_pc;     //PC下一条指令地�??
+wire [31:0] current_pc;  //PC当前指令地址
+wire [31:0] npc_pc;  //NPC计算得指令地�??
 
 PC U_pc(
     .clk_i(clk_i),

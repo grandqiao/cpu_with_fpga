@@ -13,10 +13,12 @@ module IDECODE(
     output wire [31:0] rD1_o, //寄存�?1输出
     output wire [31:0] rD2_o, //寄存�?2输出
     output wire [31:0] imm_o, //立即数输�?
-    output reg [31:0] debug_wd_o
+    output wire [31:0] debug_wd_o
 );
 
 reg [31:0] Wd; //写寄存器数据
+
+assign debug_wd_o = Wd; //调试输出
 
 always @(*) begin
     case (we_op_i)
@@ -36,7 +38,6 @@ always @(*) begin
             Wd = 32'b0; //默认�?
         end
     endcase
-    debug_wd_o = Wd; //调试输出
 end
 
 RF U_rf(
