@@ -61,7 +61,7 @@ module Bridge (
     wire access_btn = (addr_from_cpu == `PERI_ADDR_BTN) ? 1'b1 : 1'b0;
     wire access_cnt = ({addr_from_cpu[31:4],4'b0000} == `PERI_ADDR_CNT) ? 1'b1 : 1'b0;
     
-    wire [4:0] access_bit = { access_mem,
+    wire [5:0] access_bit = { access_mem,
                               access_dig,
                               access_led,
                               access_sw,
@@ -109,7 +109,7 @@ module Bridge (
     // Select read data towards CPU
     always @(*) begin
         casex (access_bit)
-            6'b1?????: rdata_to_cpu = rdata_from_dram;
+            6'b100000: rdata_to_cpu = rdata_from_dram;
             6'b000100: rdata_to_cpu = rdata_from_sw;
             6'b000010: rdata_to_cpu = rdata_from_btn;
             6'b000001: rdata_to_cpu = rdata_from_cnt;
